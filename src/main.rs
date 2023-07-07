@@ -1,11 +1,13 @@
 mod shader;
 
-use crate::shader::{load_noise, MapMaterial, NoiseTex};
+use crate::shader::{
+    fix_textures, load_textures, textures_just_loaded, ColorTex, MapMaterial, NoiseTex,
+};
+use bevy::asset::ChangeWatcher;
 use bevy::prelude::*;
-use bevy::render::camera::ScalingMode;
-use bevy::render::primitives::Frustum;
-use bevy::sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle};
+use bevy::sprite::{Material2dPlugin, MaterialMesh2dBundle};
 use bevy::window::WindowResolution;
+use std::time::Duration;
 
 pub const CLEAR: Color = Color::rgb(0.3, 0.3, 0.3);
 pub const HEIGHT: f32 = 900.0;
@@ -13,9 +15,10 @@ pub const RESOLUTION: f32 = 16.0 / 9.0;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(window_plugin()))
+        .add_plugins(DefaultPlugins.set(window_plugin()).set(asset_plugin()))
         .add_plugin(Material2dPlugin::<MapMaterial>::default())
-        .add_systems(PreStartup, load_noise)
+        .add_systems(PreStartup, load_textures)
+        .add_systems(Update, fix_textures.run_if(textures_just_loaded))
         .add_systems(Startup, add_objects)
         .add_systems(Startup, spawn_camera)
         .run()
@@ -32,12 +35,20 @@ fn window_plugin() -> WindowPlugin {
     }
 }
 
+fn asset_plugin() -> AssetPlugin {
+    AssetPlugin {
+        watch_for_changes: ChangeWatcher::with_delay(Duration::from_secs(0)),
+        ..Default::default()
+    }
+}
+
 // === Systems ===
 
 fn add_objects(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<MapMaterial>>,
+    color: Res<ColorTex>,
     noise: Res<NoiseTex>,
 ) {
     commands.spawn(MaterialMesh2dBundle {
@@ -45,9 +56,8 @@ fn add_objects(
             .add(Mesh::from(shape::Quad::new(Vec2::new(800., 800.))))
             .into(),
         material: materials.add(MapMaterial {
-            color1: Color::YELLOW,
-            color2: Color::MAROON,
-            noise: noise.clone().0,
+            color: color.clone(),
+            noise: noise.clone(),
         }),
         ..default()
     });
