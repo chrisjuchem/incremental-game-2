@@ -1,5 +1,9 @@
+mod factory;
+mod recipe;
 mod shader;
 
+use crate::factory::{load_factory_sprite, spawn_factories, tick_factories};
+use crate::recipe::{Materials, Recipes};
 use crate::shader::{
     fix_textures, load_textures, textures_just_loaded, ColorTex, MapMaterial, NoiseTex,
 };
@@ -16,11 +20,16 @@ pub const RESOLUTION: f32 = 16.0 / 9.0;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(window_plugin()).set(asset_plugin()))
-        .add_plugin(Material2dPlugin::<MapMaterial>::default())
+        .add_plugins(Material2dPlugin::<MapMaterial>::default())
         .add_systems(PreStartup, load_textures)
         .add_systems(Update, fix_textures.run_if(textures_just_loaded))
         .add_systems(Startup, add_objects)
         .add_systems(Startup, spawn_camera)
+        .insert_resource(Recipes::default())
+        .insert_resource(Materials::default_populated())
+        .add_systems(PreStartup, load_factory_sprite)
+        .add_systems(Startup, spawn_factories)
+        .add_systems(FixedUpdate, tick_factories)
         .run()
 }
 
