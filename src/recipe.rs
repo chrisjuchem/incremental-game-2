@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::{Deref, DerefMut, Resource},
-    utils::HashMap,
-};
+use bevy::{prelude::*, utils::HashMap};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::fmt::{Display, Formatter};
@@ -59,6 +56,13 @@ impl Materials {
 
     pub fn default_populated() -> Self {
         Self(Material::iter().map(|m| (m, 0)).collect())
+    }
+}
+
+pub fn print_materials(materials: Res<Materials>) {
+    println!("Current Materials:");
+    for (mat, n) in &materials.0 {
+        println!("{mat}: {n}");
     }
 }
 

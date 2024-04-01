@@ -3,7 +3,7 @@ mod recipe;
 mod shader;
 
 use crate::factory::{load_factory_sprite, spawn_factories, tick_factories};
-use crate::recipe::{Materials, Recipes};
+use crate::recipe::{print_materials, Materials, Recipes};
 use crate::shader::{
     fix_textures, load_textures, textures_just_loaded, ColorTex, MapMaterial, NoiseTex,
 };
@@ -30,6 +30,7 @@ fn main() {
         .add_systems(PreStartup, load_factory_sprite)
         .add_systems(Startup, spawn_factories)
         .add_systems(FixedUpdate, tick_factories)
+        .add_systems(FixedUpdate, print_materials)
         .run()
 }
 
